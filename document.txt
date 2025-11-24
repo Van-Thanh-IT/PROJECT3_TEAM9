@@ -1,0 +1,80 @@
+src/
+├── assets/                  # Tài nguyên tĩnh
+│   ├── images/              # Logo, banner, ảnh tĩnh
+│   ├── icons/               # SVG icons
+│   └── styles/              # Global styles (reset.css, variables.scss)
+│
+├── components/              # 🧩 SHARED COMPONENTS (Dùng chung cho cả Admin & User)
+│   ├── common/              # Các component nhỏ (Atomic)
+│   │   ├── Button/
+│   │   ├── Input/
+│   │   ├── Select/
+│   │   └── Modal/
+│   └── layout/              # Các khung giao diện chính
+│       ├── MainLayout/      # Layout cho khách (Header + Footer + Content)
+│       ├── AdminLayout/     # Layout cho Admin (Sidebar + Header + Content)
+│       └── AuthLayout/      # Layout trang đăng nhập/đăng ký
+│
+├── features/                # 🚀 TÍNH NĂNG CỐT LÕI (Chia theo nghiệp vụ)
+│   ├── auth/                # Đăng nhập, Đăng ký, Quên mật khẩu
+│   │   ├── authSlice.js     # Redux state cho user
+│   │   ├── LoginForm.jsx
+│   │   └── RegisterForm.jsx
+│   │
+│   ├── product/             # Quản lý hiển thị sản phẩm (Quan trọng nhất)
+│   │   ├── components/      # Component con chỉ dùng cho product
+│   │   │   ├── ProductCard.jsx
+│   │   │   ├── ProductFilter.jsx   # Bộ lọc (Size, Màu, Brand)
+│   │   │   ├── SizeSelector.jsx    # Chọn size giày
+│   │   │   └── ImageGallery.jsx    # Album ảnh giày
+│   │   ├── productSlice.js  # Redux quản lý list, filter
+│   │   └── productService.js # API gọi backend
+│   │
+│   ├── cart/                # Giỏ hàng
+│   │   ├── CartItem.jsx
+│   │   └── cartSlice.js
+│   │
+│   ├── checkout/            # Thanh toán
+│   │   ├── AddressForm.jsx
+│   │   └── PaymentMethod.jsx
+│   │
+│   └── admin/               # Các tính năng riêng cho trang Admin
+│       ├── Dashboard/
+│       ├── ProductManagement/ # CRUD Giày, Quản lý Size/Màu
+│       └── OrderManagement/   # Duyệt đơn, cập nhật trạng thái
+│
+├── hooks/                   # Custom Hooks
+│   ├── useAuth.js           # Check login status
+│   ├── useCart.js           # Logic thêm/sửa/xóa giỏ
+│   └── useDebounce.js       # Dùng cho ô tìm kiếm
+│
+├── pages/                   # 📄 CÁC TRANG (Route đích đến)
+│   ├── public/              # Trang cho khách
+│   │   ├── HomePage.jsx
+│   │   ├── ProductListPage.jsx
+│   │   ├── ProductDetailPage.jsx
+│   │   └── CartPage.jsx
+│   │
+│   └── admin/               # Trang cho quản trị viên
+│       ├── DashboardPage.jsx
+│       ├── AdminProductPage.jsx
+│       └── AdminOrderPage.jsx
+│
+├── routes/                  # Cấu hình đường dẫn
+│   ├── AppRoutes.jsx        # Tổng hợp routes
+│   └── PrivateRoute.jsx     # Chặn user thường vào trang admin
+│
+├── services/                # Cấu hình API chung
+│   ├── axiosClient.js       # Config axios (base URL, interceptors token)
+│   └── apiEndpoints.js      # List các đường dẫn API
+│
+├── store/                   # Redux Store configuration
+│   └── index.js             # configureStore
+│
+├── utils/                   # Các hàm tiện ích
+│   ├── formatPrice.js       # Format VND (1.000.000 đ)
+│   ├── constants.js         # Các hằng số (ORDER_STATUS, ROLE...)
+│   └── storage.js           # Helper cho localStorage
+│
+├── App.js
+└── index.js
