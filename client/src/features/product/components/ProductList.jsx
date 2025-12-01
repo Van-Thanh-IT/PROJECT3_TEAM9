@@ -11,6 +11,7 @@ const ProductList = () => {
     dispatch(fetchProductHome());
   }, [dispatch]);
 
+  const shouldRenderProducts = Array.isArray(productHome) && productHome.length > 0;
   return (
     <div className="container mx-auto ">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Sản phẩm mới nhất</h2>
@@ -18,7 +19,7 @@ const ProductList = () => {
       {/* --- QUAN TRỌNG: KHUNG LƯỚI CHIA CỘT --- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
-        {productHome && productHome.length > 0 ? (
+        {shouldRenderProducts ? (
           productHome.map((product) => (
          
             <ProductCard

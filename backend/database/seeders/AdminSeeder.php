@@ -14,7 +14,7 @@ class AdminSeeder extends Seeder
     {
         // SỬA: Thêm dấu ! vào trước để kiểm tra "KHÔNG tồn tại"
         // Hoặc dùng: User::where(...)->doesntExist()
-        if (!User::where('email', 'lovanthanh34523@gmail.com')->exists()) { 
+        if (!User::where('email', 'tranbatinh7@gmail.com')->exists()) { 
             
             $adminRole = Role::firstOrCreate(
                 ['name' => 'admin'],
@@ -23,9 +23,9 @@ class AdminSeeder extends Seeder
 
             $admin = User::create([
                 'username' => 'Quản trị viên',
-                'email' => 'lovanthanh34523@gmail.com',
+                'email' => 'tranbatinh7@gmail.com',
                 'password' => Hash::make('12345678'),
-                'phone' => '0334566883',
+                'phone' => '0329802523',
             ]);
 
             // Gán role cho user
