@@ -2,44 +2,82 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\ResetPasswordNotification;
+use App\Models\Address;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    protected $table = "users";
+
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'username', 'email', 'password', 'phone',
+        'provider', 'provider_id', 'avatar',
+        'status', 'gender', 'date_of_birth'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['roles', 'permissions', 'pivot', 'password'];
 
     /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
+     * Gửi email reset password
      */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-    ];
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id');
+    }
+
+    public function permissions()
+    {
+        // Lấy tất cả permission từ role
+        return $this->roles()->with('permissions')->get()
+            ->pluck('permissions')
+            ->flatten()
+            ->unique('id');
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return $this->roles()->pluck('name')->contains($role);
+    }
+
+    public function hasPermission(string $permissionName): bool
+    {
+        $permissions = $this->permissions()->pluck('name');
+
+        return $permissions->contains($permissionName);
+    }
+
+    /**
+     * JWT
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(): array
+    {
+        return [
+            'username'    => $this->username,
+            'roles'       => $this->roles->pluck('name'),
+            'permissions' => $this->permissions()->pluck('name'),
+        ];
+    }
+
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
+    }
+
+
 }

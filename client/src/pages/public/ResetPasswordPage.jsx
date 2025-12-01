@@ -1,0 +1,11 @@
+import React from 'react';
+import ResetPassword from '../../features/auth/ResetPassword';
+const ResetPasswordPage = () => {
+    return (
+        <div>
+            <ResetPassword />
+        </div>
+    );
+}
+
+export default ResetPasswordPage;

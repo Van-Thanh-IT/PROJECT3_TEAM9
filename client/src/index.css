@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+/* Khôi phục lại các thẻ cơ bản */
+@layer base {
+  h1 {
+    @apply text-2xl font-bold mb-4; /* H1 to và đậm */
+  }
+  h2 {
+    @apply text-xl font-bold mb-3;
+  }
+  h3 {
+    @apply text-lg font-bold mb-2;
+  }
+  a {
+    @apply text-blue-600 underline;
+  }
+  ul {
+    @apply list-disc list-inside; 
+  }
+  input {
+    @apply border border-gray-300 p-2 rounded; 
+  }
+  button {
+    @apply bg-gray-200 px-4 py-2 rounded border border-gray-400 hover:bg-gray-300; 
+  }
+}
+
