@@ -24,6 +24,14 @@ class HomeController extends Controller
             'data' => $products
         ]);
     }
+
+    public function getProductDetail($id) {
+        $product = $this->prodctService->getProductDetail($id);
+        return response()->json([
+            'success' => true,
+            'data' => $product
+        ]);
+    }
     
     public function payment(Request $request) {
         $vnpayReturn = $this->vnpayService->createPayment($request);

@@ -1,6 +1,6 @@
 import React from "react";
 import { FaStar, FaEye } from "react-icons/fa";
-
+import { Link } from "react-router-dom";
 export default function ProductCard({ product, onViewDetail }) {
   // Hàm an toàn để format giá tiền
   const formatPrice = (price) => {
@@ -31,10 +31,13 @@ export default function ProductCard({ product, onViewDetail }) {
         )}
 
         {/* Nút Xem chi tiết (Trượt từ dưới lên) */}
-        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 flex items-center justify-center">
-          <button className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 bg-white text-gray-900 text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 hover:bg-black hover:text-white">
+       <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 flex items-center justify-center">
+          <Link 
+            to={`/product/${product.slug}`}
+            className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 bg-white text-gray-900 text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 hover:bg-black hover:text-white"
+          >
             <FaEye /> Xem chi tiết
-          </button>
+          </Link>
         </div>
       </div>
 

@@ -100,6 +100,7 @@ Route::prefix("carts")->group(function () {
 
 Route::prefix("client")->group(function () {
     Route::get("/products", [HomeController::class, "getProductHome"]);
+    Route::get("/products/{id}", [HomeController::class, "getProductDetail"]);
     Route::post("/pay", [HomeController::class, "payment"]);
 });
 

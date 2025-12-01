@@ -30,7 +30,7 @@ class ProductService
     //lấy hiển thị trong home
   public function getProductHome()
 {
-    return Product::select('id', 'brand_id', 'category_id', 'name', 'description', 'price', 'old_price')
+    return Product::select('id', 'brand_id', 'slug', 'category_id', 'name', 'description', 'price', 'old_price')
         ->with([
             'images' => function($query) {
                 $query->select('id', 'product_id', 'url')
@@ -55,14 +55,21 @@ class ProductService
 
 
             return $product;
-        });
+    });
 }
+   public function getProductDetail($id){
 
+        return Product::select('id', 'brand_id', 'category_id', 'slug' ,'name', 'description', 'price', 'old_price')
+        ->with([
+            "variants" => function($query) {
+                $query->select('id', 'product_id', 'color', 'size', 'price');
+        }])
+        ->with('images')
+        ->withAvg('reviews', 'rating')
+        ->withCount('reviews')
+        ->findOrFail($id);
+   }
 
-
-
-
-    
     // Lấy 1 sản phẩm theo id
     public function findById($id)
     {
