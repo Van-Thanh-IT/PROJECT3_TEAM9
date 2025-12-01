@@ -181,3 +181,15 @@ export const fetchProductHome = createAsyncThunk(
     }
   }
 )
+
+export const fetchProductDetail = createAsyncThunk(
+  "products/productDetail",
+  async (slug, { rejectWithValue }) => {
+    try {
+      const res = await ProductService.getProductDetail(slug);
+      return res.data.data || res.data; 
+    } catch (err) {
+      return handleError(err, rejectWithValue);
+    }
+  }
+)

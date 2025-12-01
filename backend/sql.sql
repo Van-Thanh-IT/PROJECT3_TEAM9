@@ -64,7 +64,7 @@ CREATE TABLE password_reset_tokens (
 
 CREATE TABLE user_logs (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,                        -- Người thực hiện
+    user_id INT NULL,                        -- Người thực hiện
     action VARCHAR(255) NOT NULL,                -- Hành động (login, update,...)
     ip_address VARCHAR(50) NULL,                 -- IP truy cập
     user_agent VARCHAR(255) NULL,                -- Trình duyệt/thiết bị

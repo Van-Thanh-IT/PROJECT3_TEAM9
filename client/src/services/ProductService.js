@@ -27,6 +27,7 @@ const ProductService = {
 
     //client
     getProductHome: () => axiosClient.get(`/client/products`),
+    getProductDetail: (slug) => axiosClient.get(`/client/products/${slug}`),
 };
 
 export default ProductService;

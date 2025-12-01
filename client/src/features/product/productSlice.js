@@ -11,18 +11,16 @@ import {
   createImage,
   softDeleteImage,
   setPrimaryImage,
-  fetchProductHome
+  fetchProductHome,
+  fetchProductDetail
 } from "./productThunks";
 
 const initialState = {
   products: [],
   productDetail: null,
-  productHome: [], 
+  productHome: [],
 
-  // Status management
   status: "idle",
-
-  // Error management
   error: null,
   validationErrors: null,
 };
@@ -152,6 +150,11 @@ const productSlice = createSlice({
         state.status = "succeeded";
         state.productHome = action.payload;
 
+      })
+
+      .addCase(fetchProductDetail.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.productDetail = action.payload;
       })
 
       // --- MATCHER (Pending & Rejected chung cho tất cả) ---

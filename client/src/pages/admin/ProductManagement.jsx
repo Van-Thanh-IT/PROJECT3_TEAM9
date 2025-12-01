@@ -27,6 +27,7 @@ import ProductModal from "../../components/common/modal/ProductModal";
 import ProductVariantModal from "../../components/common/modal/ProductVariantModal";
 import ProductImageModal from "../../components/common/modal/ProductImageModal";
 
+import BrandManagement from "./BrandManagement";
 const ProductManagement = () => {
     const dispatch = useDispatch();
     
@@ -309,6 +310,7 @@ const ProductManagement = () => {
         <div style={{ padding: 20, background: '#fff', borderRadius: 8, minHeight: '80vh' }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20, alignItems: 'center' }}>
                 <h2 style={{ margin: 0 }}>Quản lý Sản phẩm</h2>
+                <BrandManagement/>
                 <Button 
                     type="primary" icon={<PlusOutlined />} size="large"
                     onClick={() => handleOpenProductModal(null)}

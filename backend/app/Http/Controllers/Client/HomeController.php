@@ -25,8 +25,8 @@ class HomeController extends Controller
         ]);
     }
 
-    public function getProductDetail($id) {
-        $product = $this->prodctService->getProductDetail($id);
+    public function getProductDetail($slug) {
+        $product = $this->prodctService->getProductDetail($slug);
         return response()->json([
             'success' => true,
             'data' => $product
