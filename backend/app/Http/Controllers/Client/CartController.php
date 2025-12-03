@@ -20,13 +20,17 @@ class CartController extends Controller
 
     public function getCart(Request $request)
     {
-        $userId = auth()->id();
+        $userId  = auth()->id();
         $guestId = $request->guest_id;
 
-        $cart = $this->cartService->getOrCreateCart($userId, $guestId);
+        $cart = $this->cartService->getCartDetail($userId, $guestId);
 
-        return Cart::with('items.variant.product')->find($cart->id);
+        return response()->json([
+            'status' => true,
+            'data'   => $cart
+        ]);
     }
+
 
     /**
      * Thêm item vào giỏ hàng
@@ -85,6 +89,24 @@ class CartController extends Controller
 
         return response()->json($res);
     }
+
+    /**
+ * Cập nhật số lượng 1 item trong giỏ hàng
+ */
+    public function updateItemQuantity(Request $request, $id)
+    {
+        $request->validate([
+            'quantity' => 'required|integer|min:1'
+        ]);
+        $quantity = $request->input('quantity');
+        $item = $this->cartService->updateCartItemQuantity($id, $quantity);
+
+        return response()->json([
+            'status' => true,
+            'items' =>  $item  
+        ], 200);
+    }
+
 
 
    

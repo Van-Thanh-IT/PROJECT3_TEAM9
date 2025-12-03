@@ -2,7 +2,6 @@ import React from "react";
 import { FaStar, FaEye } from "react-icons/fa";
 import { Link } from "react-router-dom";
 export default function ProductCard({ product, onViewDetail }) {
-  // Hàm an toàn để format giá tiền
   const formatPrice = (price) => {
     return Number(price).toLocaleString('vi-VN') + '₫';
   };

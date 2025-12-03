@@ -88,3 +88,17 @@ export const toggleCategoryStatus = createAsyncThunk(
         }
     }
 );
+
+
+// client
+export const fetchProductsByCategorySlug = createAsyncThunk(
+    "category/fetchProductsByCategory",
+    async(slug, {rejectWithValue}) => {
+         try {
+            const response = await CategoryService.getProductsByCategorySlug(slug);
+            return response.data;
+        } catch (error) {
+            return handleError(error, rejectWithValue);
+        }
+    } 
+)

@@ -272,4 +272,62 @@ class ProductService
 
         return "{$prefix}-{$colorCode}-{$sizeCode}-{$random}";
     }
+
+
+  public function search($request)
+{
+    $keyword = $request->input('q');           // Từ khóa tìm kiếm
+    $categoryId = $request->input('category'); // Lọc theo danh mục
+    $brandId = $request->input('brand');       // Lọc theo thương hiệu
+    $minPrice = $request->input('min_price');  // Giá min
+    $maxPrice = $request->input('max_price');  // Giá max
+
+    // Bắt đầu query
+    $query = Product::query()
+        ->with(['images' => fn($q) => $q->where('is_primary', 1)->select('id', 'product_id', 'url')])
+        ->with(['category:id,name', 'brand:id,name'])
+        ->withAvg('reviews', 'rating')
+        ->withCount('reviews')
+        ->where('status', 'active');
+
+    // Tìm kiếm theo keyword
+    if ($keyword) {
+        $query->where(function($q) use ($keyword) {
+            $q->where('name', 'LIKE', "%{$keyword}%")
+              ->orWhere('description', 'LIKE', "%{$keyword}%")
+              ->orWhereHas('category', fn($q2) => $q2->where('name', 'LIKE', "%{$keyword}%"))
+              ->orWhereHas('brand', fn($q3) => $q3->where('name', 'LIKE', "%{$keyword}%"));
+        });
+    }
+
+    // Filter category, brand, price
+    if ($categoryId) $query->where('category_id', $categoryId);
+    if ($brandId) $query->where('brand_id', $brandId);
+    if ($minPrice) $query->where('price', '>=', $minPrice);
+    if ($maxPrice) $query->where('price', '<=', $maxPrice);
+
+    // Sắp xếp mới nhất trước
+    $query->orderBy('created_at', 'desc');
+
+    // Phân trang 20 sp / trang
+    $products = $query->paginate(5);
+
+    // Map để thêm image chính, discount, rating
+    $products->getCollection()->transform(function($product) {
+        $product->image = $product->images->first()->url ?? null;
+        unset($product->images);
+
+        $product->reviews_avg_rating = round((float)($product->reviews_avg_rating ?? 0), 1);
+        $product->reviews_count = $product->reviews_count ?? 0;
+
+        $product->discountPercent = ($product->old_price && $product->old_price > $product->price)
+            ? round((($product->old_price - $product->price) / $product->old_price) * 100)
+            : 0;
+
+        return $product;
+    });
+
+    return $products;
+}
+
 }

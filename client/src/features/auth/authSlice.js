@@ -184,8 +184,6 @@ const authSlice = createSlice({
         state.isSuccess = true;
         state.isLoggedIn = true;
         
-        // CẬP NHẬT: Lấy đúng trường từ API trả về (khớp với respondWithToken bên Laravel)
-        state.user = action.payload.user_info; 
         state.roles = action.payload.roles || [];
         state.permissions = action.payload.permissions || []; // Nếu login có trả về permissions
         

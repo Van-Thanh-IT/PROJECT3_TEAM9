@@ -132,8 +132,6 @@ class AuthController extends Controller
 
   protected function respondWithToken($token)
 {
-    // CÁCH FIX: Ép hệ thống dùng token này để lấy user, bất kể đang ở guard nào
-    // Nếu auth()->user() null thì thử setToken
     $user = auth()->user();
     
     if (!$user) {
@@ -144,7 +142,13 @@ class AuthController extends Controller
         }
     }
 
-    // Phòng trường hợp vẫn không lấy được user (tránh lỗi 500)
+    if ($user) {
+        if (request()->guest_id) {
+            app(\App\Services\CartService::class)
+                ->mergeCart($user->id, request()->guest_id);
+        }
+    }
+
     if (!$user) {
         return response()->json([
             'access_token' => $token,
@@ -158,8 +162,6 @@ class AuthController extends Controller
         'access_token' => $token,
         'token_type' => 'bearer',
         'expires_in' => auth()->factory()->getTTL() * 60,
-        
-        // Giờ $user đã an toàn để gọi
         'user_info' => [
             'id'       => $user->id,
             'name'     => $user->username ?? $user->name,

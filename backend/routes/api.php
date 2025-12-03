@@ -64,7 +64,6 @@ Route::middleware(["auth:jwt", "check.role:admin"])->prefix("admin")->group(func
    
 
     Route::prefix("categories")->group(function(){
-        Route::get('/', [CategoryController::class, 'index']);
         Route::post('/', [CategoryController::class, 'store']);
         Route::get('/{id}', [CategoryController::class, 'show']);
         Route::put('/{id}', [CategoryController::class, 'update']);
@@ -89,19 +88,29 @@ Route::middleware(["auth:jwt", "check.role:admin"])->prefix("admin")->group(func
    });
 });
 
-
-Route::prefix("carts")->group(function () {
-    Route::post("/add", [CartController::class, "addItems"]);
-    Route::post("/merge", [CartController::class, "merge"]);
-    Route::get("/", [CartController::class, "getCart"]);
-    Route::delete("/removeItem/{id}", [CartController::class, "removeItem"]);
-    Route::delete("/removeOrderedItems", [CartController::class, "removeOrderedItems"]);  
-});
-
 Route::prefix("client")->group(function () {
     Route::get("/products", [HomeController::class, "getProductHome"]);
+
+    Route::get("/products/search", [HomeController::class, "search"]);
+    
     Route::get("/products/{slug}", [HomeController::class, "getProductDetail"]);
+    Route::get('/categories/{slug}/products', [HomeController::class, 'getProductsByCategorySlug']);
     Route::post("/pay", [HomeController::class, "payment"]);
+    
+    Route::prefix("carts")->group(function () {
+        Route::post("/add", [CartController::class, "addItems"]);
+        Route::post("/merge", [CartController::class, "merge"]);
+        Route::get("/", [CartController::class, "getCart"]);
+        Route::delete("/removeItem/{id}", [CartController::class, "removeItem"]);
+        Route::delete("/removeOrderedItems", [CartController::class, "removeOrderedItems"]); 
+        Route::patch("/item/{id}", [CartController::class, "updateItemQuantity"]);
+    });
+
+    Route::get('/categories', [CategoryController::class, 'index']);
+
+
+   
+
 });
 
 Route::middleware(["auth:jwt", "check.role:user,admin"])->prefix("user")->group(function(){

@@ -1,9 +1,9 @@
 import React from 'react';
-
 const ProductPage = () => {
     return (
         <div>
             <h1>Trang sản phẩm</h1>
+            
         </div>
     );
 }

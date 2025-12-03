@@ -8,6 +8,37 @@ use Illuminate\Support\Str;
 
 class CartService
 {
+    
+    public function getCartDetail($userId, $guestId)
+    {
+        $cart = $this->getOrCreateCart($userId, $guestId)
+                    ->load(['items.variant.product']);
+
+        $cart->items->transform(function($item) {
+            return [
+                'id' => $item->id,
+                'quantity' => $item->quantity,
+                'variant' => [
+                    'id' => $item->variant->id,
+                    'size' => $item->variant->size,
+                    'color' => $item->variant->color,
+                    'price' => $item->variant->price,
+                    'product' => [
+                        'id' => $item->variant->product->id,
+                        'name' => $item->variant->product->name,
+                        'slug' => $item->variant->product->slug,
+                        'price' => $item->variant->product->price,
+                        'old_price' => $item->variant->product->old_price,
+                        'image' => $item->variant->product->images->where('is_primary', true)->first()?->url,
+                    ]
+                ]
+            ];
+        });
+
+        return $cart;
+    }
+
+
     public function getOrCreateCart($userId, $guestId)
     {
         $cartKey = $userId ? "user_" . $userId : "guest_" . $guestId;
@@ -17,6 +48,7 @@ class CartService
             ['user_id' => $userId]
         );
     }
+
 
     public function addItems($cartId, $items)
     {
@@ -51,7 +83,6 @@ class CartService
         if (!$guestCart) return;
 
         if (!$userCart) {
-            // Nếu user chưa có giỏ -> chuyển nguyên giỏ guest sang user
             $guestCart->update([
                 "cart_key" => $userCartKey,
                 "user_id"  => $userId
@@ -135,5 +166,17 @@ class CartService
     }
 
 
+   public function updateCartItemQuantity($cartItemId, $quantity)
+    {
+        $item = CartItem::find($cartItemId);
 
+        if (!$item) {
+            return ['status' => false, 'message' => 'Item không tồn tại'];
+        }
+
+        $item->quantity = $quantity;
+        $item->save();
+
+        return $item;
+    }
 }

@@ -4,12 +4,15 @@ import {
     fetchCategoryById,
     createCategory,
     updateCategory,
-    toggleCategoryStatus
+    toggleCategoryStatus,
+    fetchProductsByCategorySlug,
+    
  } from "./categoryThunks";
 
 const initialState = {
     categories: [],
     categoryDetail: null,
+    productsByCategory: [],
     status: "idle",
     error: null,
     validationErrors: null,
@@ -63,6 +66,11 @@ const categorySlice = createSlice({
                 if (index !== -1) {
                     state.categories[index] = action.payload;
                 }
+            })
+
+           .addCase(fetchProductsByCategorySlug.fulfilled, (state, action) => {
+                state.status = "succeeded";
+                state.productsByCategory = action.payload.data;
             })
 
             .addMatcher(isPending, (state) => {

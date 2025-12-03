@@ -193,3 +193,17 @@ export const fetchProductDetail = createAsyncThunk(
     }
   }
 )
+
+
+export const searchProducts = createAsyncThunk(
+    "product/searchProducts",
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await ProductService.searchProduct(params);
+            // Laravel trả về: { data: [...], current_page: 1, last_page: 5, total: 100, ... }
+            return response.data; 
+        } catch (error) {
+            return rejectWithValue(error.response?.data || "Lỗi tìm kiếm");
+        }
+    }
+);

@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import ProductList from '../../features/product/components/ProductList';
 import HeroBanner from '../../components/layouts/MainLayout/HeroBanner';
+
 const HomePage = () => {
+
     return (
         <div>
             <HeroBanner />
-            <h1 className='bg-red-600'>Trang chủ</h1>
-
-            <ProductList />
+            <section id='product' className="mt-10">
+                <ProductList />
+            </section>
         </div>
     );
 }

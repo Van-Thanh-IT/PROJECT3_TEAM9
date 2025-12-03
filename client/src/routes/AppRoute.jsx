@@ -12,6 +12,10 @@ import ProfilePage from "../pages/public/ProfilePage";
 import ForgotPasswordPage from "../pages/public/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/public/ResetPasswordPage";
 import ProductDetailPage from "../pages/public/ProductDetailPage";
+import CartPage from "../pages/public/CartPage";
+import CategoryPage from "../pages/public/CategoryPage";
+import SearchPage from "../pages/public/SearchPage";
+
 //admin 
 import Dashboard from "../pages/admin/Dashboard";
 import UserManagement from "../pages/admin/UserManagement";
@@ -35,6 +39,9 @@ const AppRoutes = () => {
                     <Route index element={<HomePage />} />
                     <Route path="/product" element={<ProductPage />} />
                     <Route path="/product/:slug" element={<ProductDetailPage />} />
+                    <Route path="/cart" element={<CartPage/>}/>
+                    <Route path="/category/:slug" element={<CategoryPage/>}/>
+                    <Route path="/search" element={<SearchPage/>}/>
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />

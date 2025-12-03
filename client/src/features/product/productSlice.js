@@ -12,13 +12,23 @@ import {
   softDeleteImage,
   setPrimaryImage,
   fetchProductHome,
-  fetchProductDetail
+  fetchProductDetail,
+  searchProducts
+
 } from "./productThunks";
 
 const initialState = {
   products: [],
   productDetail: null,
   productHome: [],
+  productSearch: [],
+
+  pagination: {
+      currentPage: 1,
+      lastPage: 1,
+      total: 0,
+      perPage: 20
+  },
 
   status: "idle",
   error: null,
@@ -156,6 +166,20 @@ const productSlice = createSlice({
         state.status = "succeeded";
         state.productDetail = action.payload;
       })
+
+       .addCase(searchProducts.fulfilled, (state, action) => {
+          state.isLoading = false;
+          state.productSearch = action.payload.data;
+          state.pagination = {
+          currentPage: action.payload.current_page,
+          lastPage: action.payload.last_page,
+          total: action.payload.total,
+          perPage: action.payload.per_page
+        };
+      })
+
+
+           
 
       // --- MATCHER (Pending & Rejected chung cho tất cả) ---
       .addMatcher(isPending, (state) => {

@@ -6,7 +6,6 @@ import ProductCard from "./ProductCard";
 const ProductList = () => {
   const dispatch = useDispatch();
   const { productHome } = useSelector((state) => state.product);
-
   useEffect(() => {
     dispatch(fetchProductHome());
   }, [dispatch]);

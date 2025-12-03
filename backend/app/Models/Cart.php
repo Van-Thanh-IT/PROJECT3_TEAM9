@@ -22,21 +22,4 @@ class Cart extends Model
         return $this->hasMany(CartItem::class);
     }
 
-    public function variant()
-    {
-        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
-    }
-
-    // ProductVariant.php
-    public function product()
-    {
-        return $this->belongsTo(Product::class);
-    }
-
-    // Product.php
-    public function images()
-    {
-        return $this->hasMany(ProductImage::class);
-    }
-
 }
