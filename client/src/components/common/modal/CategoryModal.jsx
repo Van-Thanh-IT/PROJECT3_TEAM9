@@ -87,7 +87,7 @@ const CategoryModal = ({
                     help={validationErrors?.name?.[0]}
                     rules={[{ required: true, message: "Vui lòng nhập tên danh mục!" }]}
                 >
-                    <Input placeholder="Ví dụ: Điện thoại, Laptop..." />
+                    <Input placeholder="Tên danh mục...." />
                 </Form.Item>
 
                 {/* --- Danh Mục Cha (Parent ID) --- */}

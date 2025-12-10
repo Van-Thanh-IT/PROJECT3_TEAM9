@@ -25,11 +25,13 @@ class OrderItem extends Model
         'updated_at'
     ];
 
+    public $timestamps = false;
+
     public function order() {
         return $this->belongsTo(Order::class);
     }
 
-    public function productVariant() {
-        return $this->belongsTo(ProductVariant::class);
+    public function variant() {
+        return $this->belongsTo(ProductVariant::class, "product_variant_id");
     }
 }

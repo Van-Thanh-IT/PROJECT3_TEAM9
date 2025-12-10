@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+
+import { Link, useNavigate } from 'react-router-dom';
 import { FaTrash, FaArrowRight, FaShoppingBag } from 'react-icons/fa';
 import { message } from 'antd';
 
@@ -9,6 +10,7 @@ import { fetchCart, removeCartItem, updateCartQuantity } from '../../features/ca
 
 const CartPage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   
   // Lấy state từ Redux
   const { cartItems = [], isLoading } = useSelector((state) => state.cart);
@@ -65,6 +67,18 @@ const CartPage = () => {
     }, 0);
   }, [cartItems, selectedItems]);
 
+  const handleProceedToCheckout = () => {
+      // Lọc ra danh sách các item đã chọn
+      const itemsToCheckout = cartItems.filter(item => selectedItems.includes(item.id));
+      
+  
+      navigate('/checkout', { 
+          state: { 
+              cartTotal: calculatedTotal, 
+              checkoutItems: itemsToCheckout
+          } 
+      });
+  };
 
   const handleRemoveItem = (id) => {
     dispatch(removeCartItem(id))
@@ -78,14 +92,8 @@ const CartPage = () => {
 
   // --- HÀM CẬP NHẬT SỐ LƯỢNG (ĐÃ SỬA) ---
   const handleUpdateQuantity = (id, currentQty, type) => {
-     // 1. Tính toán số lượng mới
      const newQty = type === 'plus' ? currentQty + 1 : currentQty - 1;
-
-     // 2. Kiểm tra điều kiện (không được nhỏ hơn 1)
      if (newQty < 1) return;
-
-     // 3. Gọi API thông qua Redux Thunk
-     // Payload: { id, quantity }
      dispatch(updateCartQuantity({ id, quantity: newQty }))
         .unwrap()
         .then(() => {
@@ -245,7 +253,8 @@ const CartPage = () => {
                 <span className="text-2xl font-extrabold text-red-600">{formatPrice(calculatedTotal)}</span>
               </div>
 
-              <button 
+              <button
+                onClick={handleProceedToCheckout} // Gọi hàm chuyển hướng
                 disabled={selectedItems.length === 0}
                 className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 group transition-all ${
                     selectedItems.length > 0 

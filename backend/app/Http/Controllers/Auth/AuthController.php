@@ -37,7 +37,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $token = $this->authService->login($request->only('email', 'password'));
-
+        
         if (!$token) {
             return response()->json(['message' => 'email hoặc mật khẩu không đúng!'], 401);
         }
@@ -164,9 +164,9 @@ class AuthController extends Controller
         'expires_in' => auth()->factory()->getTTL() * 60,
         'user_info' => [
             'id'       => $user->id,
-            'name'     => $user->username ?? $user->name,
+            'name'     => $user->username,
             'email'    => $user->email,
-            'avatar'   => $user->avatar ?? null,
+            'status'   => $user->status
         ],
         'roles' => $user->roles->pluck('name'),
     ]);

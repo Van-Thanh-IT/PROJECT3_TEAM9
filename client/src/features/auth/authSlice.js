@@ -1,8 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import AuthService from "../../services/AuthService";
 
-// Key lưu trong LocalStorage
 const STORAGE_KEY = "access_token";
+const GUEST_ID = "guestId";
 
 // =================================================================
 // 1. THUNKS (Giữ nguyên logic gọi API, chỉ sửa nhẹ phần logout)
@@ -61,6 +61,7 @@ export const loginWithGoogle = createAsyncThunk(
       }
       return response.data;
     } catch (error) {
+      console.error(error);
       return thunkAPI.rejectWithValue(error.response?.data?.message || "Google Login Failed");
     }
   }
@@ -110,14 +111,15 @@ export const resetPassword = createAsyncThunk(
 export const logout = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
   try {
     await AuthService.logout();
+    window.location.href = "/login";
   } catch (error) {
     console.error(error);
   } finally {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(GUEST_ID);
   }
 });
 
-// --- Lấy thông tin user (F5 trang) ---
 export const getMe = createAsyncThunk("auth/getMe", async (_, thunkAPI) => {
   try {
     const response = await AuthService.getMe();
@@ -185,7 +187,7 @@ const authSlice = createSlice({
         state.isLoggedIn = true;
         
         state.roles = action.payload.roles || [];
-        state.permissions = action.payload.permissions || []; // Nếu login có trả về permissions
+        state.permissions = action.payload.permissions || []; 
         
         state.message = "Đăng nhập thành công";
       })

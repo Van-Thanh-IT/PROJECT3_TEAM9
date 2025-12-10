@@ -1,9 +1,10 @@
 import React from 'react';
+import InventoryList from '../../features/inventory/components/InventoryList';
 
 const InventoryManagement = () => {
     return (
         <div>
-            <h1>Trang quản lý kho hàng</h1>
+            <InventoryList />
         </div>
     );
 }

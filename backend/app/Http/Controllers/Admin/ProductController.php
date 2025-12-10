@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
 use App\Http\Requests\VariantRequest;
 use App\Models\Product;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -71,7 +72,6 @@ class ProductController extends Controller
 
     public function variantStore(Request $request, $id)
     {
-
         $productVariant = $this->productService->createVariant($id, $request);
 
         return response()->json([

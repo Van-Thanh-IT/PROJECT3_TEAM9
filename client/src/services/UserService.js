@@ -12,7 +12,8 @@ const UserService = {
     createStaff: (data) => {
         return axiosClient.post("/admin/staffs", data, {
             headers: {
-                "Content-Type": "multipart/form-data", // Bắt buộc để gửi file
+                "Content-Type": "multipart/form-data",
+                timeout: axiosClient.defaults.timeout,
             },
         });
     },
@@ -20,6 +21,17 @@ const UserService = {
         return axiosClient.post(`/admin/staffs/${id}?_method=PUT`, data, {
              headers: {
                 "Content-Type": "multipart/form-data",
+                timeout: axiosClient.defaults.timeout,
+            },
+        });
+    },
+
+    //update_profile
+    updateInfoProfile: (data) => {
+         return axiosClient.post(`/users/me/update?_method=PUT`, data, {
+             headers: {
+                "Content-Type": "multipart/form-data",
+                 timeout: axiosClient.defaults.timeout,
             },
         });
     }

@@ -2,9 +2,11 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Traits\CloudinaryUpload;
 
 class UserService
 {
+    use CloudinaryUpload;
     
     public function getAll()
     {
@@ -44,10 +46,17 @@ class UserService
     }
 
     //profile
-     public function update($id, array $request)
+     public function update($id, array $data)
     {
         $user = User::findOrFail($id);
-        $user->update($request);
+
+         if (!empty($data['avatar']) && $data['avatar']) {
+            $avatarUrl = $this->uploadToCloudinary($data['avatar']);
+            $data['avatar'] = $avatarUrl;
+        } else {
+            unset($data['avatar']); 
+        }
+        $user->update($data);
         return $user;
     }
 

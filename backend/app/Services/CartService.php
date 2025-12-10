@@ -132,38 +132,23 @@ class CartService
         ];
     }
 
-     public function removeOrderedItems($cartId, array $productVariantIds)
+    public function removeOrderedItems(array $productVariantIds)
     {
-        $cart = Cart::find($cartId);
+        $deletedCount = CartItem::whereIn('product_variant_id', $productVariantIds)->delete();
 
-        if (!$cart) {
-            return [
-                'status' => false,
-                'message' => 'Giỏ hàng không tồn tại'
-            ];
-        }
-
-        $items = CartItem::where('cart_id', $cartId)
-                        ->whereIn('product_variant_id', $productVariantIds)
-                        ->get();
-
-        if ($items->isEmpty()) {
+        if ($deletedCount === 0) {
             return [
                 'status' => false,
                 'message' => 'Không tìm thấy sản phẩm nào trong giỏ hàng để xóa'
             ];
         }
 
-        foreach ($items as $item) {
-            $item->delete();
-        }
-
         return [
             'status' => true,
-            'message' => 'Đã xóa các sản phẩm đã đặt khỏi giỏ hàng',
-            'data' => $items
+            'message' => "Đã xóa $deletedCount sản phẩm khỏi giỏ hàng"
         ];
     }
+
 
 
    public function updateCartItemQuantity($cartItemId, $quantity)

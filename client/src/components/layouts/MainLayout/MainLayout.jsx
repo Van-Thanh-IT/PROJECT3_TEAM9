@@ -9,7 +9,7 @@ const MainLayout = () => {
     <div>
       <Header />
       <ScrollToHash />
-      <main className="min-h-screen pt-25">
+      <main className="min-h-screen pt-25 ">
         <Outlet />
       </main>
       <Footer />

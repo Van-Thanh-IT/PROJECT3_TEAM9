@@ -36,6 +36,7 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 select * from users;
+update users set email = 'lovanthanh9124@gmail.com' where id = 5;
 -- Bảng user_roles & permission_roles: Giữ nguyên logic
 CREATE TABLE user_roles (
     user_id INT NOT NULL,
@@ -121,7 +122,7 @@ CREATE TABLE products (
     FOREIGN KEY(brand_id) REFERENCES brands(id) ON DELETE SET NULL,
     FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
-update products set old_price = 600000 where id = id; 
+
 select * from products;
 
 -- Bảng product_variants: QUAN TRỌNG CHO GIÀY (Size + Màu)
@@ -137,6 +138,7 @@ CREATE TABLE product_variants (
     FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 select * from product_variants;
+
 -- Bảng product_images: Ảnh chi tiết (Góc nghiêng, đế giày...)
 CREATE TABLE product_images (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -175,23 +177,10 @@ CREATE TABLE cart_items (
 );
 select * from  cart_items;
 
-CREATE TABLE addresses (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    full_name VARCHAR(100) NOT NULL,
-    phone VARCHAR(20) NOT NULL,
-    address_line VARCHAR(255) NOT NULL,
-    city VARCHAR(100) NOT NULL,
-    district VARCHAR(100) NOT NULL,
-    ward VARCHAR(100) NOT NULL,
-    is_default BOOLEAN DEFAULT FALSE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
 -- Bảng vouchers: Mã giảm giá (Của cửa hàng bạn tạo)
 CREATE TABLE vouchers (
     id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(150) NOT NULL,
     code VARCHAR(50) UNIQUE NOT NULL,
     discount_type ENUM('percent', 'fixed') NOT NULL, -- Giảm % hay giảm tiền mặt
     discount_value DECIMAL(15,2) NOT NULL,
@@ -200,19 +189,43 @@ CREATE TABLE vouchers (
     end_date DATETIME NOT NULL,
     usage_limit INT DEFAULT 0,           -- Giới hạn số lần dùng
     used_count INT DEFAULT 0,
+    deleted_at DATETIME NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+select * from  vouchers;
+
+CREATE TABLE addresses (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    full_name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    address_detail VARCHAR(255) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    district VARCHAR(100) NOT NULL,
+    ward VARCHAR(100) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+select * from addresses;
 
 CREATE TABLE orders (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    code VARCHAR(50) UNIQUE NOT NULL,    -- Mã đơn hàng (vd: ORD-2024-001)
-    user_id INT NOT NULL,
+    code VARCHAR(50) UNIQUE NOT NULL,  
+    user_id INT NULL,
     address_id INT NOT NULL,
     voucher_id INT NULL,
     total_amount DECIMAL(15,2) NOT NULL,
     discount_amount DECIMAL(15,2) DEFAULT 0.0,
     final_amount DECIMAL(15,2) NOT NULL, -- Số tiền thực trả
-    status ENUM('pending', 'confirmed', 'picked_up', 'in_transit', 'delivered', 'canceled', 'returned' ) DEFAULT 'pending',
+    
+    goship_shipment_id VARCHAR(50) NULL,  -- ID shipment từ Goship
+	shipping_fee DECIMAL(15,2) NULL,     -- Phí ship
+	shipping_carrier VARCHAR(50) NULL,   -- Tên đơn vị vận chuyển
+	tracking_number VARCHAR(50) NULL,    -- Mã vận đơn GHN
+	shipping_status VARCHAR(50) NULL,    -- Trạng thái đơn vận chuyển,
+    shipment_status_txt VARCHAR(255) NULL,
+    
+    cancel_reason VARCHAR(255) NULL,
     note TEXT NULL,                      -- Ghi chú của khách
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -222,6 +235,9 @@ CREATE TABLE orders (
 );
 
 
+
+select * from orders;
+SELECT * FROM orders WHERE id = 98 AND user_id = 5;
 CREATE TABLE order_items (
     id INT PRIMARY KEY AUTO_INCREMENT,
     order_id INT NOT NULL,
@@ -234,7 +250,8 @@ CREATE TABLE order_items (
     FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE,
     FOREIGN KEY(product_variant_id) REFERENCES product_variants(id) ON DELETE SET NULL
 );
-
+select * from order_items;
+select * from product_variants;
 CREATE TABLE payments (
     id INT PRIMARY KEY AUTO_INCREMENT,
     order_id INT NOT NULL,
@@ -245,108 +262,85 @@ CREATE TABLE payments (
     provider_response TEXT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE
+    FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE,
+	CONSTRAINT unique_order_id UNIQUE(order_id)
 );
 
 
--- =====================================================================
--- 📦 NHÓM 4: QUẢN LÝ KHO (ĐƠN GIẢN HÓA)
--- =====================================================================
--- Nếu bạn chỉ có 1 kho hàng duy nhất, có thể quản lý số lượng tồn ngay tại bảng `product_variants`.
--- Tuy nhiên, giữ bảng nhập kho này để quản lý lịch sử nhập hàng (Import)
+select * from payments;
 
 /* ================================================================
-   📦 BẢNG TỒN KHO: Lưu số lượng tồn hiện tại của từng biến thể SP
+   📦 1. BẢNG TỒN KHO HIỆN TẠI (QUAN TRỌNG NHẤT)
+   Lưu số lượng thực tế đang có để truy vấn nhanh, không cần tính toán lại lịch sử
    ================================================================ */
-CREATE TABLE inventory (
+CREATE TABLE product_stocks (
     id INT PRIMARY KEY AUTO_INCREMENT,
-
-    product_variant_id INT NOT NULL,         -- ID của size + màu sản phẩm
-    stock INT NOT NULL DEFAULT 0,            -- Tồn kho hiện tại của biến thể
-
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP 
-        ON UPDATE CURRENT_TIMESTAMP,         -- Tự update khi tồn thay đổi
-
+    product_variant_id INT NOT NULL UNIQUE,
+    quantity INT DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY(product_variant_id) REFERENCES product_variants(id)
 );
-
+select * from product_stocks;
 
 /* ================================================================
-   📥 PHIẾU NHẬP KHO: Lưu các lần nhập hàng vào kho
+   📄 2. PHIẾU KHO (inventory_notes)
+   Thay đổi từ 'voucher' sang 'note' để tránh nhầm với mã giảm giá
    ================================================================ */
-CREATE TABLE goods_receipts (
+CREATE TABLE inventory_notes (
     id INT PRIMARY KEY AUTO_INCREMENT,
-
-    supplier_name VARCHAR(255) NULL,         -- Tên nhà cung cấp (Nike VN,...)
-    user_id INT NULL,                         -- Nhân viên tạo phiếu nhập
-
-    input_date DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Thời gian nhập
-    note TEXT NULL,                            -- Ghi chú: nhập đợt mới, test,...
-
+    code VARCHAR(50) NOT NULL UNIQUE,       -- Mã phiếu (PN001, PX001...)
+    type ENUM('IMPORT','EXPORT','ADJUST') NOT NULL,     
+    reason VARCHAR(50) NOT NULL,            -- purchase, return, damage, audit...
+    
+    user_id INT NULL,                       -- Nhân viên kho
+    supplier_name VARCHAR(255) NULL,        -- Nhà cung cấp (nếu nhập)
+    
+    total_amount DECIMAL(15,2) DEFAULT 0,   -- Tổng tiền nhập/xuất
+    note TEXT NULL,                         -- Ghi chú
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
     FOREIGN KEY(user_id) REFERENCES users(id)
 );
-
+select * from inventory_notes;
+select * from product_variants;
 
 /* ================================================================
-   📥 CHI TIẾT PHIẾU NHẬP: Từng sản phẩm được nhập
+   📝 3. CHI TIẾT PHIẾU KHO (inventory_note_details)
    ================================================================ */
-CREATE TABLE goods_receipt_details (
+CREATE TABLE inventory_note_details (
     id INT PRIMARY KEY AUTO_INCREMENT,
-
-    receipt_id INT NOT NULL,                  -- Liên kết phiếu nhập
-    product_variant_id INT NOT NULL,          -- Biến thể giày (màu + size)
-
-    quantity INT NOT NULL,                    -- Số lượng nhập
-    import_price DECIMAL(15,2) NOT NULL,      -- Giá vốn nhập (vnd)
-
-    FOREIGN KEY(receipt_id) REFERENCES goods_receipts(id) ON DELETE CASCADE,
+    inventory_note_id INT NOT NULL,         -- Đổi tên khóa ngoại cho khớp
+    product_variant_id INT NOT NULL,
+    
+    quantity INT NOT NULL,
+    price DECIMAL(15,2) DEFAULT 0,
+    
+    FOREIGN KEY(inventory_note_id) REFERENCES inventory_notes(id) ON DELETE CASCADE,
     FOREIGN KEY(product_variant_id) REFERENCES product_variants(id)
 );
-
-
+select * from inventory_note_details;
 /* ================================================================
-   📤 PHIẾU XUẤT KHO: Xuất kho cho mục đích khác bán hàng
+   📜 4. LỊCH SỬ KHO (inventory_history)
+   Cột reference_type sẽ rõ ràng hơn
    ================================================================ */
-CREATE TABLE goods_issues (
+CREATE TABLE inventory_history (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    reason VARCHAR(255) NOT NULL,             -- Lý do: hư hỏng / điều chỉnh kho
-    user_id INT NULL,                         -- Nhân viên thực hiện
-    issue_date DATETIME DEFAULT CURRENT_TIMESTAMP,   -- Thời gian xuất
-    note TEXT NULL,                            -- Ghi chú thêm
-    FOREIGN KEY(user_id) REFERENCES users(id)
-);
-/* ================================================================
-   📤 CHI TIẾT PHIẾU XUẤT: Từng biến thể SP bị xuất khỏi kho
-   ================================================================ */
-CREATE TABLE goods_issue_details (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    issue_id INT NOT NULL,                    -- Liên kết phiếu xuất
-    product_variant_id INT NOT NULL,          -- Size + màu cụ thể
-    quantity INT NOT NULL,                    -- Số lượng xuất
-    FOREIGN KEY(issue_id) REFERENCES goods_issues(id) ON DELETE CASCADE,
+    product_variant_id INT NOT NULL,
+    
+    previous_quantity INT NOT NULL,
+    change_amount INT NOT NULL,
+    new_quantity INT NOT NULL,
+    
+    reference_type VARCHAR(50) NOT NULL,    -- 'inventory_note' (phiếu kho), 'order' (đơn hàng)
+    reference_id INT NOT NULL,              -- ID của bảng tương ứng
+    
+    note VARCHAR(255) NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
     FOREIGN KEY(product_variant_id) REFERENCES product_variants(id)
 );
-
-/* ================================================================
-   🔄 BẢNG LỊCH SỬ GIAO DỊCH KHO (IMPORT, EXPORT, ORDER, CANCEL, RETURN)
-   ================================================================ */
-CREATE TABLE inventory_transactions (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    product_variant_id INT NOT NULL,         -- Size + màu
-    change_type ENUM('import','export','order','cancel','return') NOT NULL, 
-                                              -- Loại giao dịch kho:
-                                              -- import = nhập
-                                              -- export = xuất
-                                              -- order  = đặt hàng (giảm tồn)
-                                              -- cancel = hủy đơn (tăng tồn)
-                                              -- return = trả hàng (tăng tồn)
-    quantity INT NOT NULL,                   -- SL tăng/giảm
-    reference_id INT NULL,                   -- ID phiếu nhập / xuất / đơn hàng
-    note VARCHAR(255) NULL,                  -- Ghi chú thêm
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Thời gian thực hiện
-    FOREIGN KEY(product_variant_id) REFERENCES product_variants(id)
-);
-
+select * from inventory_history;
 -- =====================================================================
 -- 💬 NHÓM 5: TƯƠNG TÁC (REVIEWS & SUPPORT)
 -- =====================================================================
@@ -400,11 +394,35 @@ LIMIT 100;
 -- Thay messages bằng contact_requests (Khách gửi yêu cầu hỗ trợ)
 CREATE TABLE support_tickets (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NULL,                    -- Có thể là khách vãng lai
-    email VARCHAR(100) NULL,             -- Nếu chưa đăng nhập
-    subject VARCHAR(255) NOT NULL,
-    message TEXT NOT NULL,
-    status ENUM('open', 'processing', 'resolved') DEFAULT 'open',
+
+    user_id INT NULL,                      -- Khách đã đăng nhập
+    email VARCHAR(100) NULL,               -- Khách vãng lai
+
+    order_id INT NULL,                     -- Đơn hàng liên quan
+
+    subject VARCHAR(255) NOT NULL,         -- Chủ đề (bắt buộc)
+    status ENUM('open', 'processing', 'resolved', 'closed') DEFAULT 'open',
+
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE SET NULL
 );
+select * from support_tickets;
+CREATE TABLE support_messages (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    ticket_id INT NOT NULL,                -- Liên kết ticket
+    sender_id INT NULL,                    -- user hoặc admin, staff_customer_support
+    sender_type ENUM('user', 'admin', 'staff_customer_support') NOT NULL,
+    message TEXT NULL,                     -- Nội dung text
+    attachment_url VARCHAR(500) NULL,      -- File ảnh/video/PDF...
+    attachment_type VARCHAR(50) NULL,      -- image/png, pdf,...
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY(ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE,
+    FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+select * from support_messages ;
+

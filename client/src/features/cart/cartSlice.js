@@ -1,26 +1,32 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { fetchCart, addToCart, removeCartItem, updateCartQuantity } from "./cartThunks";
 
+// Hàm tính tổng số lượng SP trong giỏ
+const calculateTotalQuantity = (items) => {
+  return items.reduce((sum, item) => sum + Number(item.quantity), 0);
+};
+
 const initialState = {
-  cartItems: [], 
+  cartItems: [],
   isLoading: false,
   error: null,
-  totalAmount: 0, 
+  totalAmount: 0,
+  totalQuantity: 0, // 👈 thêm trường để hiển thị trên Header
 };
 
 const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    // Các action đồng bộ thường (nếu cần)
     clearCartState: (state) => {
       state.cartItems = [];
       state.totalAmount = 0;
+      state.totalQuantity = 0;
     },
   },
+
   extraReducers: (builder) => {
     builder
-      // --- Xử lý fetchCart ---
       .addCase(fetchCart.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -28,55 +34,51 @@ const cartSlice = createSlice({
       .addCase(fetchCart.fulfilled, (state, action) => {
         state.isLoading = false;
         state.cartItems = action.payload.items || [];
+        state.totalQuantity = calculateTotalQuantity(state.cartItems);
       })
       .addCase(fetchCart.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
 
-      // --- Xử lý addToCart ---
       .addCase(addToCart.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(addToCart.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.cartItems.push(action.payload); 
+        state.cartItems.push(action.payload);
+        state.totalQuantity = calculateTotalQuantity(state.cartItems);
       })
       .addCase(addToCart.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
 
-      // --- Xử lý removeCartItem ---
       .addCase(removeCartItem.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(removeCartItem.fulfilled, (state, action) => {
         state.isLoading = false;
-        // Lọc bỏ item có id trùng với id đã xóa (action.payload)
-        state.cartItems = state.cartItems.filter(
-          (item) => item.id !== action.payload
-        );
+
+        state.cartItems = state.cartItems.filter(item => item.id !== action.payload);
+        state.totalQuantity = calculateTotalQuantity(state.cartItems);
       })
       .addCase(removeCartItem.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
 
-     .addCase(updateCartQuantity.pending, (state) => {
-  // state.isLoading = true; // bỏ dòng này
-    })
-    .addCase(updateCartQuantity.fulfilled, (state, action) => {
-    // state.isLoading = false; // bỏ dòng này
-    const { id, quantity } = action.payload;
-    const item = state.cartItems.find(i => i.id === id);
-    if (item) item.quantity = quantity;
-    })
-    .addCase(updateCartQuantity.rejected, (state, action) => {
-    state.error = action.payload;
-    });
+  
+      .addCase(updateCartQuantity.fulfilled, (state, action) => {
+        const { id, quantity } = action.payload;
 
-
+        const item = state.cartItems.find(i => i.id === id);
+        if (item) item.quantity = quantity;
+        state.totalQuantity = calculateTotalQuantity(state.cartItems);
+      })
+      .addCase(updateCartQuantity.rejected, (state, action) => {
+        state.error = action.payload;
+      });
   },
 });
 

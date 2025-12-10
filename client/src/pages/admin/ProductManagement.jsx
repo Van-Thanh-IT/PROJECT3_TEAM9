@@ -1,8 +1,8 @@
 // src/pages/product/ProductManagement.jsx
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Space, message, Tag, Switch, Image, Tooltip } from "antd";
-import { PlusOutlined, EditOutlined, UnorderedListOutlined, PictureOutlined } from "@ant-design/icons";
+import { Button, Space, message, Tag, Switch, Image, Tooltip, Tabs } from "antd"; // 1. Import Tabs
+import { PlusOutlined, EditOutlined, UnorderedListOutlined, PictureOutlined, AppstoreOutlined, TagsOutlined } from "@ant-design/icons";
 
 import { 
     fetchProducts, 
@@ -28,6 +28,7 @@ import ProductVariantModal from "../../components/common/modal/ProductVariantMod
 import ProductImageModal from "../../components/common/modal/ProductImageModal";
 
 import BrandManagement from "./BrandManagement";
+
 const ProductManagement = () => {
     const dispatch = useDispatch();
     
@@ -35,7 +36,6 @@ const ProductManagement = () => {
     const { products, status } = useSelector((state) => state.product);
     const { brands } = useSelector((state) => state.brand);
     const { categories } = useSelector((state) => state.category);
-
     // --- LOCAL STATE ---
     // 1. Modal Sản phẩm
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -155,7 +155,7 @@ const ProductManagement = () => {
     //  C. LOGIC BIẾN THỂ
     // ==========================================
     const handleCreateVariant = async (productId, values) => {
-        const action = await dispatch(createVariant({ productId, data: values }));
+        const action = await dispatch(createVariant({ productId, formData: values }));
         if (createVariant.fulfilled.match(action)) {
             message.success("Thêm biến thể thành công!");
             await refreshProductData(productId, setVariantProduct);
@@ -179,7 +179,7 @@ const ProductManagement = () => {
     };
 
     const handleCreateImage = async (productId, formData) => {
-        const action = await dispatch(createImage({ productId, data: formData }));
+        const action = await dispatch(createImage({ productId,data:formData }));
         if (createImage.fulfilled.match(action)) {
             message.success("Upload ảnh thành công!");
             await refreshProductData(productId, setImageProduct);
@@ -226,10 +226,9 @@ const ProductManagement = () => {
                 if (!images || images.length === 0) return <span style={{fontSize: 12, color: '#999'}}>No Image</span>;
                 const primaryImage = images.find(img => img.is_primary) || images[0];
                 return (
-    
                     <Image 
                         src={primaryImage.url} 
-                        width={20} height={20} 
+                        width={30} height={30} 
                         style={{ objectFit: "cover", borderRadius: 4, border: '1px solid #ddd' }} 
                         preview={{ mask: 'Xem' }}
                     />
@@ -254,7 +253,6 @@ const ProductManagement = () => {
         {
             title: "Trạng thái",
             dataIndex: "status",
-           
             align: 'center',
             render: (status, record) => (
                 <Switch
@@ -304,13 +302,11 @@ const ProductManagement = () => {
     ];
 
     // ==========================================
-    //  F. RENDER
+    //  E. CONTENT FOR PRODUCT TAB
     // ==========================================
-    return (
-        <div style={{ padding: 20, background: '#fff', borderRadius: 8, minHeight: '80vh' }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20, alignItems: 'center' }}>
-                <h2 style={{ margin: 0 }}>Quản lý Sản phẩm</h2>
-                <BrandManagement/>
+    const renderProductTab = () => (
+        <>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 5}}>
                 <Button 
                     type="primary" icon={<PlusOutlined />} size="large"
                     onClick={() => handleOpenProductModal(null)}
@@ -330,9 +326,10 @@ const ProductManagement = () => {
                     showSizeChanger: true,
                     pageSizeOptions: ['5', '25', '50', '100', '200', '1000']
                 }} 
+                scroll={{x:920}}
             />
 
-            {/* Modal 1: Product */}
+            {/* Các Modal của Product */}
             <ProductModal
                 open={isProductModalOpen}
                 onCancel={() => setIsProductModalOpen(false)}
@@ -344,7 +341,6 @@ const ProductManagement = () => {
                 onUpdateInfo={handleUpdateProductInfo}
             />
 
-            {/* Modal 2: Variants */}
             <ProductVariantModal 
                 open={isVariantModalOpen}
                 onCancel={() => setIsVariantModalOpen(false)}
@@ -355,7 +351,6 @@ const ProductManagement = () => {
                 onDelete={handleDeleteVariant}
             />
 
-            {/* Modal 3: Images */}
             <ProductImageModal 
                 open={isImageModalOpen}
                 onCancel={() => setIsImageModalOpen(false)}
@@ -365,6 +360,41 @@ const ProductManagement = () => {
                 onDelete={handleDeleteImage}
                 onSetPrimary={handleSetPrimaryImage}
             />
+        </>
+    );
+
+    // ==========================================
+    //  F. TAB ITEMS CONFIGURATION
+    // ==========================================
+    const tabItems = [
+        {
+            key: '1',
+            label: (
+                <span>
+                    <AppstoreOutlined />
+                    Danh sách sản phẩm
+                </span>
+            ),
+            children: renderProductTab(),
+        },
+        {
+            key: '2',
+            label: (
+                <span>
+                    <TagsOutlined />
+                    Quản lý thương hiệu
+                </span>
+            ),
+            children: <BrandManagement />,
+        },
+    ];
+
+    // ==========================================
+    //  G. RENDER MAIN COMPONENT
+    // ==========================================
+    return (
+        <div style={{ padding: 20, background: '#fff', borderRadius: 8, minHeight: '80vh' }}>
+            <Tabs defaultActiveKey="1" items={tabItems} />
         </div>
     );
 };

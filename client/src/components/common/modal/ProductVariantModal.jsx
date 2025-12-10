@@ -161,7 +161,7 @@ const ProductVariantModal = ({
                         <Input placeholder="Màu (VD: Đỏ)" />
                     </Form.Item>
                     <Form.Item name="size" rules={[{ required: true, message: 'Nhập size' }]}>
-                        <Input placeholder="Size (VD: XL)" style={{ width: 120 }} />
+                        <Input placeholder="Size (VD: 39)" style={{ width: 120 }} />
                     </Form.Item>
                     <Form.Item name="price" rules={[{ required: true, message: 'Nhập giá' }]}>
                         <InputNumber 

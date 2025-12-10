@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchStaffs, addStaff, editStaff, modifyUserStatus } from "../../features/admin/userSlice";
+import { fetchStaffs, addStaff, editStaff, modifyUserStatus } from "../../features/user/userThunks";
 import CustomTable from "../../components/common/table/CustomTable";
 import StaffDetailModal from "../../components/common/modal/StaffDetailModal";
 import AddStaffModal from "../../components/common/modal/AddStaffModal";
 import EditStaffModal from "../../components/common/modal/EditStaffModal";
+import { message } from "antd";
 
 const StaffManagement = () => {
   const dispatch = useDispatch();
@@ -43,7 +44,9 @@ const StaffManagement = () => {
     try {
       await dispatch(addStaff(formData)).unwrap();
       setShowAddModal(false);
+      message.success("Đã thêm nhân viên!");
       dispatch(fetchStaffs());
+
     } catch (error) {
       console.error("Add failed:", error);
     }
@@ -54,6 +57,7 @@ const StaffManagement = () => {
       await dispatch(editStaff({ id: editingStaff.id, data: formData })).unwrap();
       setShowEditModal(false);
       setEditingStaff(null);
+      message.success("Đã sửa nhân viên!");
       dispatch(fetchStaffs());
     } catch (error) {
       console.error("Lỗi sửa:", error);

@@ -137,7 +137,6 @@ export const createImage = createAsyncThunk(
       const res = await ProductService.createImage(productId, data);
       return res.data.data || res.data; 
     } catch (err) {
-        console.error(err);
       return handleError(err, rejectWithValue);
     }
   }
@@ -170,17 +169,43 @@ export const setPrimaryImage = createAsyncThunk(
 
 
 // client
+// file: productThunks.js
 export const fetchProductHome = createAsyncThunk(
-  "products/productHome",
-  async (_, { rejectWithValue }) => {
+  "product/fetchHome",
+  async (page, { rejectWithValue }) => {
     try {
-      const res = await ProductService.getProductHome();
-      return res.data.data || res.data; 
+      // Nếu không truyền page thì mặc định là 1
+      const response = await ProductService.getProductHome(page || 1);
+      return response.data; // Trả về toàn bộ object (bao gồm data, current_page, last_page...)
     } catch (err) {
-      return handleError(err, rejectWithValue);
+      return rejectWithValue(err);
     }
   }
-)
+);
+
+export const  fetchBestSellingProducts = createAsyncThunk(
+  "product/fetchBestSellingProducts",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await ProductService.getBestSellingProducts();
+      return response.data; // Trả về toàn bộ object (bao gồm data, current_page, last_page...)
+    } catch (err) {
+      return rejectWithValue(err);
+    }
+  }
+);
+
+export const fetchProductReviewsForHome = createAsyncThunk(
+  "product/fetchProductReviewsForHome",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await ProductService.getProductReviewsForHome();
+      return response.data; 
+    } catch (err) {
+      return rejectWithValue(err);
+    }
+  }
+);
 
 export const fetchProductDetail = createAsyncThunk(
   "products/productDetail",
@@ -207,3 +232,4 @@ export const searchProducts = createAsyncThunk(
         }
     }
 );
+

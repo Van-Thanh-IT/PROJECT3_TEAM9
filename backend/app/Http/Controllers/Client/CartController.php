@@ -79,17 +79,6 @@ class CartController extends Controller
         return response()->json($res);
     }
 
-    // Xóa nhiều item sau khi đặt hàng
-    public function removeOrderedItems(Request $request)
-    {
-        $cartId = $request->input('cart_id');
-        $productVariantIds = $request->input('product_variant_ids', []);
-
-        $res = $this->cartService->removeOrderedItems($cartId, $productVariantIds);
-
-        return response()->json($res);
-    }
-
     /**
  * Cập nhật số lượng 1 item trong giỏ hàng
  */

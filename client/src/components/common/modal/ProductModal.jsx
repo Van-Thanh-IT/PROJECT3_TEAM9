@@ -129,7 +129,7 @@ const ProductModal = ({
                                 </Col>
                                 <Col span={7}>
                                     <Form.Item {...restField} name={[name, 'size']} rules={[{ required: true, message: 'Nhập size' }]} style={{ marginBottom: 0 }}>
-                                        <Input placeholder="Size (XL)" />
+                                        <Input placeholder="Size (40)" />
                                     </Form.Item>
                                 </Col>
                                 <Col span={8}>

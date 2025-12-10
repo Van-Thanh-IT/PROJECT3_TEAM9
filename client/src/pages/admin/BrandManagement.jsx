@@ -141,7 +141,6 @@ const BrandManagement = () => {
         <div style={{ padding: 20 }}>
             {/* Header */}
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-                <h1>{viewTrash ? "Thùng rác thương hiệu" : "Quản lý thương hiệu"}</h1>
                 <Space>
                     <Button icon={viewTrash ? <ReloadOutlined /> : <RestOutlined />} onClick={() => setViewTrash(!viewTrash)}>
                         {viewTrash ? "Quay lại danh sách" : "Thùng rác"}

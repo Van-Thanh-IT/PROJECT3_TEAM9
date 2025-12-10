@@ -58,7 +58,6 @@ class RolePermissionSeeder extends Seeder
 
         $this->command->info('Permissions đã tạo xong.');
 
-        // ====================== 2. Tạo role và gán permission ======================
         $roles = [
             'admin' => 'all', // admin có tất cả permission
             'staff_sale' => ['create_order', 'view_order', 'view_customer', 'view_report'],
@@ -79,14 +78,13 @@ class RolePermissionSeeder extends Seeder
 
         $this->command->info('Roles và gán permission xong.');
 
-        // ====================== 3. Tạo admin mẫu ======================
-        $adminEmail = 'admin@example.com';
+        $adminEmail = 'lovanthanh34523@gmail.com';
         $admin = User::firstOrCreate(
             ['email' => $adminEmail],
             [
                 'username' => 'Admin',
                 'password' => Hash::make('12345678'),
-                'phone' => '0123456789',
+                'phone' => '0353198531',
                 'status' => 'active',
             ]
         );

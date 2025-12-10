@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { clearErrors } from "../../../features/admin/userSlice"; // Đảm bảo đúng đường dẫn
+import { clearErrors } from "../../../features/user/userSlice"; // Đảm bảo đúng đường dẫn
 
 const AddStaffModal = ({ show, onClose, onSubmit }) => {
   const dispatch = useDispatch();
 
   // Lấy state từ Redux
-  const { isSubmitting, validationErrors } = useSelector(
+  const { status , validationErrors } = useSelector(
     (state) => state.user // Hoặc state.management tùy store.js
   );
+  const isSubmitting = status === 'loading';
 
   const initialFormState = {
     username: "",
     email: "",
     password: "",
-    password_confirmation: "", // 1. Thêm field này để khớp với validate 'confirmed'
+    password_confirmation: "", 
     phone: "",
     gender: "male",
     date_of_birth: "",

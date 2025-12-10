@@ -16,22 +16,17 @@ class Address extends Model
         'user_id',
         'full_name',
         'phone',
-        'address_line',
+        'address_detail',
         'city',
         'district',
-        'ward',
-        'is_default',
+        'ward'
     ];
 
     public $timestamps = false;
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
 
-    // public function orders()
-    // {
-    //     return $this->hasMany(Order::class);
-    // }
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }

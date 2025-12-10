@@ -1,14 +1,17 @@
-// src/pages/public/LoginPage.jsx
 import React from 'react';
-import AuthLayout from '../../components/layouts/MainLayout/AuthLayout';
+import AuthLayout from '../../components/layouts/MainLayout/AuthLayout'; // Đảm bảo đường dẫn đúng
 import LoginForm from '../../features/auth/LoginFrom';
 
 const LoginPage = () => {
-  // Tại đây bạn có thể set Title cho tab trình duyệt
-//   document.title = "Đăng nhập - ShoeStore"; 
+  // Set title cho tab trình duyệt (Optional)
+  React.useEffect(() => {
+    document.title = "Đăng nhập | ShoeStore";
+  }, []);
 
   return (
-    <AuthLayout title="Đăng nhập tài khoản">
+    <AuthLayout 
+      title="Chào mừng trở lại!" 
+    >
         <LoginForm />
     </AuthLayout>
   );

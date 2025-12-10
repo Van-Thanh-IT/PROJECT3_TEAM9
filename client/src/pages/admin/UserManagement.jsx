@@ -1,13 +1,12 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUsers, modifyUserStatus } from "../../features/admin/userSlice";
+import { fetchUsers, modifyUserStatus } from "../../features/user/userThunks";
 import CustomTable from "../../components/common/table/CustomTable";
 
 const UserManagement = () => {
   const dispatch = useDispatch();
   const { users, isLoading } = useSelector((state) => state.user);
-
-  const [search, setSearch] = useState(""); // <-- trạng thái tìm kiếm
+  const [search, setSearch] = useState(""); 
 
   useEffect(() => {
     dispatch(fetchUsers());
@@ -32,6 +31,7 @@ const UserManagement = () => {
   };
 
   const columns = [
+    { title: "ID", dataIndex: "id" },
     { title: "Tên", dataIndex: "username" },
     { title: "Email", dataIndex: "email" },
     { title: "SĐT", dataIndex: "phone" },

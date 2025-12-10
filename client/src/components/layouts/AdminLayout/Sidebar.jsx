@@ -58,18 +58,23 @@ const Sidebar = () => {
       allowedRoles: ['admin', 'staff_sale'] // Admin và Sale
     },
     { 
-      name: "Quản lý Kho", 
+      name: "Quản lý voucher", 
+      path: "/admin/vouchers", 
+      icon: CubeIcon, 
+      allowedRoles: ['admin', 'staff_sale'] // Admin và Sale
+    },
+    {
+      name: "Quản lý đơn hàng", 
+      path: "/admin/orders", 
+      icon: CubeIcon, 
+      allowedRoles: ['admin', 'staff_sale'] // Admin và Sale
+    },
+    { 
+      name: "Quản lý Kho hàng", 
       path: "/admin/inventory", 
       icon: ArchiveBoxIcon, // Đổi icon cho hợp
       allowedRoles: ['admin', 'staff_warehouse'] // Admin và Kho
     },
-    { 
-      name: "Bao cáo & thống kê", 
-      path: "/admin/report_statistics", 
-      icon: ChartBarIcon, 
-      allowedRoles: ['admin', 'staff_warehouse'] 
-    },
-
     { 
       name: "Hỗ trợ & CSKH", 
       path: "/admin/support", 

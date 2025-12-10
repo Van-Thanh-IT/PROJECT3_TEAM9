@@ -28,6 +28,15 @@ class Handler extends ExceptionHandler
     public function render($request, Throwable $e)
     {
         if ($request->is('api/*')) {
+            
+            // Bắt lỗi 400 bad request
+            if ($e instanceof BadRequestException) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                    'code' => 400,
+                ], 400);
+            }
 
             // Bắt lỗi PostPolicy
              if ($e instanceof AuthorizationException) {

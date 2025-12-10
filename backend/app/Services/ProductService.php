@@ -5,9 +5,11 @@ namespace App\Services;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\ProductImage;
+use App\Models\ProductStock;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Traits\CloudinaryUpload;
+
 use Exception;
 
 class ProductService
@@ -28,49 +30,92 @@ class ProductService
     }
 
     //lấy hiển thị trong home
-  public function getProductHome()
-{
-    return Product::select('id', 'brand_id', 'slug', 'category_id', 'name', 'description', 'price', 'old_price')
-        ->with([
-            'images' => function($query) {
-                $query->select('id', 'product_id', 'url')
-                      ->where('is_primary', 1);
-            }
-        ])
-        ->withAvg('reviews', 'rating')
-        ->withCount('reviews')
-        ->get()
-        ->map(function($product){
+    public function getProductHome($perPage = 8)
+    {
+        $products = Product::select('id', 'brand_id', 'slug', 'category_id', 'name', 'description', 'price', 'old_price')
+            ->with([
+                'images' => function($query) {
+                    $query->select('id', 'product_id', 'url')
+                        ->where('is_primary', 1);
+                }
+            ])
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
+            ->paginate($perPage); 
+
+        // map dữ liệu trước khi trả về
+        $products->getCollection()->transform(function($product){
             $product->image = $product->images->first()->url ?? null;
             unset($product->images);
-            
+
             $avgRating = (float)($product->reviews_avg_rating ?? 0);
             $product->reviews_avg_rating = round($avgRating, 1);
             $product->reviews_count = $product->reviews_count ?? 0;
 
-
-          $product->discountPercent = ($product->old_price && $product->old_price > $product->price)
-            ? round((($product->old_price - $product->price) / $product->old_price) * 100)
-            : 0;
-
+            $product->discountPercent = ($product->old_price && $product->old_price > $product->price)
+                ? round((($product->old_price - $product->price) / $product->old_price) * 100)
+                : 0;
 
             return $product;
-    });
-}
+        });
+
+        return $products;
+    }
+
+    public function getBestSelling($limit = 10)
+    {
+       
+       $products = Product::select('products.*')
+        ->with(['images' => fn($q) => $q->where('is_primary', 1)->select('id','product_id','url')])
+        ->withAvg('reviews', 'rating')
+        ->withCount('reviews')
+        ->join('product_variants', 'products.id', '=', 'product_variants.product_id')
+        ->join('order_items', 'product_variants.id', '=', 'order_items.product_variant_id')
+        ->where('products.status', 'active')
+        ->groupBy('products.id')
+        ->orderByRaw('SUM(order_items.quantity) DESC')
+        ->limit($limit)
+        ->get();
+
+
+        // Map dữ liệu như getProductHome
+        return $products->map(function($product) {
+            $product->image = $product->images->first()->url ?? null;
+            unset($product->images);
+
+            $product->reviews_avg_rating = round((float)($product->reviews_avg_rating ?? 0), 1);
+            $product->reviews_count = $product->reviews_count ?? 0;
+
+            $product->discountPercent = ($product->old_price && $product->old_price > $product->price)
+                ? round((($product->old_price - $product->price) / $product->old_price) * 100)
+                : 0;
+
+            return $product;
+        });
+    }
+
+
+
+
     public function getProductDetail($slug)
     {
-        return Product::select('id', 'brand_id', 'category_id', 'slug', 'name', 'description', 'price', 'old_price')
+        return Product::select(
+                'id', 'brand_id', 'category_id', 'slug',
+                'name', 'description', 'price', 'old_price'
+            )
             ->with([
                 "variants" => function ($query) {
-                    $query->select('id', 'product_id', 'color', 'size', 'price');
-                }
+                    $query->select('id', 'product_id', 'color', 'size', 'price')
+                        ->with(['stock:id,product_variant_id,quantity']);
+                },
+                "images"
             ])
-            ->with('images')
             ->withAvg('reviews', 'rating')
             ->withCount('reviews')
-            ->where('slug', $slug) 
-            ->firstOrFail();      
+            ->where('slug', $slug)
+            ->firstOrFail();
     }
+
 
 
     // Lấy 1 sản phẩm theo id
@@ -102,12 +147,17 @@ class ProductService
             if ($request->filled('variants')) {
 
                 foreach ($request->variants as $v) {
-                    ProductVariant::create([
+                    $variant = ProductVariant::create([
                         'product_id' => $product->id,
                         'sku'        => $this->generateSKU($product->name, $v['color'], $v['size']),
                         'color'      => $v['color'],
                         'size'       => $v['size'],
                         'price'      => isset($v['price']) ? $v['price'] : 0
+                    ]);
+
+                    ProductStock::create([
+                        'product_variant_id' => $variant->id,
+                        'quantity' => 0
                     ]);
                 }
             }
@@ -176,13 +226,20 @@ class ProductService
     {
         $product = Product::findOrFail($productId);
         
-        return ProductVariant::create([
+        $variant = ProductVariant::create([
             'product_id' => $productId,
             'sku'        => $this->generateSKU($product->name, $request->color, $request->size),
             'color'      => $request->color,
             'size'       => $request->size,
             'price'      => $request->price
         ]);
+
+        ProductStock::create([
+            'product_variant_id' => $variant->id,
+            'quantity' => 0
+        ]);
+
+        return $variant;
     }
 
     public function updateVariant($request, $id)
@@ -329,5 +386,71 @@ class ProductService
 
     return $products;
 }
+
+
+public function getProductReviewsForHome($limit = 8)
+{
+    // Lấy các sản phẩm active, kèm đánh giá và user đánh giá
+    $products = Product::select('products.id', 'products.name', 'products.slug', 'products.price', 'products.old_price')
+        ->where('status', 'active')
+        ->with([
+            'images' => fn($q) => $q->where('is_primary', 1)->select('id','product_id','url'),
+            'reviews' => fn($q) => $q->orderBy('created_at', 'desc')->limit(2)
+                ->with('user:id,username,avatar') // lấy thông tin user đánh giá
+        ])
+        ->withAvg('reviews', 'rating') 
+        ->withCount('reviews')        
+        ->orderBy('reviews_count', 'desc')
+        ->limit($limit)
+        ->get();
+
+    // Map dữ liệu để trả về
+    return $products->map(function($product){
+        $product->image = $product->images->first()->url ?? null;
+        unset($product->images);
+
+        $product->reviews_avg_rating = round((float)($product->reviews_avg_rating ?? 0), 1);
+        $product->reviews_count = $product->reviews_count ?? 0;
+
+        // Lấy đánh giá chi tiết, kèm user info
+        $product->reviews_details = $product->reviews->map(fn($r) => [
+            'user_id'  => $r->user_id,
+            'username' => $r->user->username ?? 'Khách',
+            'avatar'   => $r->user->avatar ?? null,
+            'rating'   => $r->rating,
+            'comment'  => $r->comment,
+            'images'   => json_decode($r->images) ?? []
+        ]);
+
+        unset($product->reviews);
+
+        // Tính % giảm giá nếu có
+        $product->discountPercent = ($product->old_price && $product->old_price > $product->price)
+            ? round((($product->old_price - $product->price) / $product->old_price) * 100)
+            : 0;
+
+        return $product;
+    });
+    }
+
+
+     public function createReview($request)
+    {
+        $userId = auth()->user()->id();
+
+        $images = null;
+        if($request->has('images')) {
+            $images = $this->uploadToCloudinary($request->file('images'));
+         
+        }
+        return Review::create([
+            'product_id' => $request->product_id,
+            'user_id' => $userId,
+            'rating' => $request->rating,
+            'comment' => $request->commen,
+            'images' => $ $images ? json_encode($images) : null,
+        ]);
+    }
+
 
 }

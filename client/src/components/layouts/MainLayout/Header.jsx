@@ -5,7 +5,8 @@ import { logout, getMe } from '../../../features/auth/authSlice';
 import { fetchCategories } from '../../../features/Category/categoryThunks';
 // Import axios instance của bạn
 import axios from 'axios'; 
-import { FaSearch } from "react-icons/fa"; 
+// [UPDATE 1] Thêm icon giỏ hàng
+import { FaSearch, FaShoppingCart } from "react-icons/fa"; 
 
 // --- HOOK DEBOUNCE ---
 function useDebounce(value, delay) {
@@ -22,6 +23,8 @@ function useDebounce(value, delay) {
 const Header = () => {
     const { isLoggedIn, user } = useSelector(state => state.auth);
     const { categories } = useSelector((state) => state.category);
+    const totalQuantity = useSelector((state) => state.cart.totalQuantity);
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
     
@@ -91,22 +94,21 @@ const Header = () => {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
     };
 
-
     return (
-        <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
+        <header className="fixed top-0 left-0 w-full shadow-md z-50">
             
-            {/* --- HÀNG 1: QUAN TRỌNG: Thêm 'relative z-50' để đè lên Hàng 2 --- */}
-            <div className="border-b border-gray-200 relative z-50 bg-white">
+            {/* --- HÀNG 1 --- */}
+            <div className="border-b border-gray-200 relative z-50 bg-red-400">
                 <nav className="container mx-auto flex items-center justify-between py-3 px-4 md:px-6 gap-4">
                     
                     {/* 1. LOGO */}
                     <div className="flex-shrink-0">
-                        <Link to="/" className="text-2xl font-bold text-blue-600 tracking-tighter hover:opacity-80">
+                        <Link to="/" className="text-2xl font-bold text-blue-600 tracking-tighter hover:opacity-80 bg-white px-2 py-1 rounded">
                             MyShop
                         </Link>
                     </div>
 
-                    {/* 2. THANH TÌM KIẾM (CÓ GỢI Ý) */}
+                    {/* 2. THANH TÌM KIẾM */}
                     <div className="flex-1 max-w-xl hidden md:block relative" ref={searchRef}>
                         <form onSubmit={handleSearchSubmit} className="relative group">
                             <input
@@ -130,9 +132,8 @@ const Header = () => {
                             </button>
                         </form>
 
-                        {/* --- DROPDOWN GỢI Ý (SỬA LẠI Z-INDEX) --- */}
+                        {/* --- DROPDOWN GỢI Ý --- */}
                         {showSuggestions && keyword.trim().length > 0 && (
-                            // QUAN TRỌNG: z-[100] để chắc chắn nó nổi lên trên cùng
                             <div className="absolute top-full left-0 w-full bg-white mt-2 rounded-lg shadow-2xl border border-gray-200 overflow-hidden z-[100] animate-fade-in">
                                 {isLoadingSuggest ? (
                                     <div className="p-4 text-center text-gray-500 text-sm">Đang tìm kiếm...</div>
@@ -189,25 +190,38 @@ const Header = () => {
 
                     {/* 3. MENU LINK & AUTH */}
                     <div className="flex items-center gap-4 lg:gap-6 text-sm font-semibold flex-shrink-0">
-                        {/* Giữ nguyên phần Auth của bạn */}
-                        <div className="hidden lg:flex items-center gap-5 text-gray-600">
-                            <Link to="/" className="hover:text-blue-600 transition-colors">Trang chủ</Link>
-                            <Link to="/product" className="hover:text-blue-600 transition-colors">Sản phẩm</Link>
-                            <Link to="/cart" className="hover:text-blue-600 transition-colors">Giỏ hàng</Link>
+                        <div className="hidden lg:flex items-center gap-5 text-gray-800">
+                            <Link to="/" className="hover:text-blue-600 transition-colors bg-white/90 px-3 py-1.5 rounded-full">Trang chủ</Link>
+                            {/* [UPDATE 2] Thêm Link About */}
+                            <Link to="/about" className="hover:text-blue-600 transition-colors bg-white/90 px-3 py-1.5 rounded-full">Giới thiệu</Link>
+                            <Link to="/product" className="hover:text-blue-600 transition-colors bg-white/90 px-3 py-1.5 rounded-full">Sản phẩm</Link>
                         </div>
+                        
+                        {/* [UPDATE 3] Icon Giỏ hàng với Badge đỏ */}
+                        <div className="flex items-center">
+                            <Link to="/cart" className="relative group p-2">
+                                <FaShoppingCart className="text-2xl text-white group-hover:text-blue-100 transition-colors" />
+                                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-red-400">
+                                    {totalQuantity > 99 ? '99+' : (totalQuantity || 0)}
+                                </span>
+                            </Link>
+                        </div>
+
                         <div className="border-l pl-4 border-gray-300">
                             {!isLoggedIn ? (
                                 <div className="flex items-center gap-3">
-                                    <Link to="/login" className="text-gray-600 hover:text-blue-600 transition-colors">Đăng nhập</Link>
-                                    <Link to="/register" className="bg-blue-600 text-white px-3 py-1.5 rounded-full hover:bg-blue-700 transition shadow-sm">Đăng ký</Link>
+                                    <Link to="/login" className="text-white hover:text-blue-100 transition-colors">Đăng nhập</Link>
+                                    <Link to="/register" className="bg-white text-blue-600 px-3 py-1.5 rounded-full hover:bg-gray-100 transition shadow-sm">Đăng ký</Link>
                                 </div>
                             ) : (
                                 <div className='flex items-center gap-3'>
-                                    <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1 rounded-full pr-3 transition">
-                                        <img src={user?.avatar || `https://ui-avatars.com/api/?name=${user?.username}`} alt="avatar" className="w-8 h-8 rounded-full border border-gray-200 object-cover" />
+                                    <div className="flex items-center gap-2 cursor-pointer bg-white/90 hover:bg-white p-1 rounded-full pr-3 transition">
+                                       <Link to="/user/profile"> 
+                                            <img src={user?.avatar || `https://ui-avatars.com/api/?name=${user?.username}`} alt="avatar" className="w-8 h-8 rounded-full border border-gray-200 object-cover" />
+                                       </Link>
                                         <span className="text-sm font-medium text-gray-700 max-w-[80px] truncate hidden xl:block">{user?.username}</span>
                                     </div>
-                                    <button onClick={handleLogout} className="text-gray-500 hover:text-red-500 transition">Đăng xuất</button>
+                                    <button onClick={handleLogout} className="text-white hover:text-red-100 transition font-medium">Đăng xuất</button>
                                 </div>
                             )}
                         </div>
@@ -216,7 +230,6 @@ const Header = () => {
             </div>
 
             {/* --- HÀNG 2: DANH MỤC SẢN PHẨM --- */}
-            {/* QUAN TRỌNG: Giảm z-index xuống thấp hơn Hàng 1 (z-40 < z-50) */}
             <div className="bg-white shadow-sm border-b border-gray-100 relative z-40">
                 <div className="container mx-auto px-4 md:px-6">
                     <ul className="flex flex-wrap items-center gap-1 list-none m-0 p-0 text-sm">

@@ -12,6 +12,8 @@ import {
   softDeleteImage,
   setPrimaryImage,
   fetchProductHome,
+  fetchBestSellingProducts,
+  fetchProductReviewsForHome,
   fetchProductDetail,
   searchProducts
 
@@ -21,6 +23,8 @@ const initialState = {
   products: [],
   productDetail: null,
   productHome: [],
+  BestSellingProducts:[],
+  ReviewsForHome:[],
   productSearch: [],
 
   pagination: {
@@ -28,6 +32,13 @@ const initialState = {
       lastPage: 1,
       total: 0,
       perPage: 20
+  },
+
+  homePagination: {
+      currentPage: 1,
+      lastPage: 1,
+      total: 0,
+      perPage: 10
   },
 
   status: "idle",
@@ -156,16 +167,36 @@ const productSlice = createSlice({
         }
       })
 
-      .addCase(fetchProductHome.fulfilled, (state, action) => {
+     .addCase(fetchProductHome.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.productHome = action.payload;
 
-      })
+        state.productHome = action.payload.data;
+        state.homePagination = {
+            currentPage: action.payload.current_page,
+            lastPage: action.payload.last_page,
+            total: action.payload.total,
+            perPage: action.payload.per_page
+        };
+    })
+
+
 
       .addCase(fetchProductDetail.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.productDetail = action.payload;
       })
+
+      .addCase(fetchBestSellingProducts.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.BestSellingProducts = action.payload;
+      })
+
+       .addCase(fetchProductReviewsForHome.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.ReviewsForHome = action.payload;
+        console.log(state.ReviewsForHome);
+      })
+
 
        .addCase(searchProducts.fulfilled, (state, action) => {
           state.isLoading = false;
@@ -178,8 +209,6 @@ const productSlice = createSlice({
         };
       })
 
-
-           
 
       // --- MATCHER (Pending & Rejected chung cho tất cả) ---
       .addMatcher(isPending, (state) => {

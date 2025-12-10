@@ -1,10 +1,16 @@
 import React from 'react';
 import ForgotPassword from '../../features/auth/ForgotPassword';
+import AuthLayout from '../../components/layouts/MainLayout/AuthLayout';
 
 const ForgotPasswordPage = () => {
+    React.useEffect(() => {
+        document.title = "Quên mật khẩu | ShoeStore";
+    })
     return (
         <div>
-           <ForgotPassword /> 
+            <AuthLayout title="Quên mật khẩu">
+                <ForgotPassword />
+            </AuthLayout>
         </div>
     );
 }

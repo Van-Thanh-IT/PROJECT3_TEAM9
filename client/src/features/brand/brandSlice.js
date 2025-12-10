@@ -14,7 +14,6 @@ const initialState = {
     trash: [],           
     brandDetail: null,    
     
-    // Status management
     status: "idle",      
     
     // Error management
@@ -55,7 +54,6 @@ const brandSlice = createSlice({
             // 3. Create
             .addCase(createBrand.fulfilled, (state, action) => {
                 state.status = "succeeded";
-                // Thêm vào đầu danh sách để user thấy ngay
                 state.brands.unshift(action.payload); 
             })
 

@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { clearErrors } from "../../../features/admin/userSlice";
+import { clearErrors } from "../../../features/user/userSlice";
 
 const EditStaffModal = ({ show, onClose, onSubmit, staff }) => {
   const dispatch = useDispatch();
 
   // Lấy lỗi từ Redux
-  const { isSubmitting, validationErrors } = useSelector((state) => state.user);
-
+  const { status, validationErrors } = useSelector((state) => state.user);
+  const isSubmitting = status === 'loading';
   const initialFormState = {
     username: "",
     email: "",
-    password: "", // Mật khẩu để trống (nếu không đổi)
+    password: "", 
     password_confirmation: "",
     phone: "",
     gender: "male",
     date_of_birth: "",
-    avatar: null, // File mới (nếu có)
+    avatar: null, 
     role: "staff_sale",
   };
 
@@ -35,7 +35,7 @@ const EditStaffModal = ({ show, onClose, onSubmit, staff }) => {
         gender: staff.gender || "male",
         date_of_birth: staff.date_of_birth || "",
         role: staff.role || "staff_sale",
-        avatar: null, // Reset input file
+        avatar: null, 
       });
       // Set ảnh cũ để hiển thị preview
       setPreviewAvatar(staff.avatar || null);

@@ -74,10 +74,20 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
-    public function addresses()
+
+    public function supportTickets()
     {
-        return $this->hasMany(Address::class);
+        return $this->hasMany(SupportTicket::class);
     }
 
+    public function supportMessages()
+    {
+        return $this->hasMany(SupportMessage::class, 'sender_id');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 
 }

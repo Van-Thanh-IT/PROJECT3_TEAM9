@@ -7,26 +7,52 @@ use Illuminate\Http\Request;
 use App\Services\VnpaySevice;
 use App\Services\ProductService;
 use App\Services\CategoryService;
+use App\Services\OrderService;
+use App\Services\VoucherService;
+use Illuminate\Support\Facades\Log;
+use App\Http\Requests\StoreOrderRequest;
+use App\Http\Requests\ApplyVoucherRequest;
+
 
 class HomeController extends Controller
 {
      protected $vnpayService;
      protected $prodctService;
      protected $categoryService;
+     protected $orderService;
+     protected $voucherService;
 
-    public function __construct(VnpaySevice $vnpayService, ProductService $prodctService, CategoryService $categoryService) {
+    public function __construct(
+        VnpaySevice $vnpayService,
+        ProductService $prodctService,
+        CategoryService $categoryService,
+        OrderService $orderService,
+        VoucherService $voucherService
+    ) {
         $this->vnpayService = $vnpayService;
         $this->prodctService = $prodctService;
         $this->categoryService = $categoryService;
+        $this->orderService = $orderService;
+        $this->voucherService = $voucherService;
     }
 
     public function getProductHome() {
         $products = $this->prodctService->getProductHome();
-        return response()->json([
-            'success' => true,
-            'data' => $products
-        ]);
+        return response()->json($products);
     }
+
+    public function getBestSellingProduct() {
+        $products = $this->prodctService->getBestSelling();
+        return response()->json($products);
+    }
+
+    public function getProductReviewsForHome() {
+        $products = $this->prodctService->getProductReviewsForHome();
+        return response()->json($products);
+    
+    }
+
+
 
     public function getProductDetail($slug) {
         $product = $this->prodctService->getProductDetail($slug);
@@ -61,5 +87,32 @@ class HomeController extends Controller
     public function payment(Request $request) {
         $vnpayReturn = $this->vnpayService->createPayment($request);
         return $vnpayReturn;
+    }
+
+    public function createOrder(StoreOrderRequest $request)
+    {
+        try {
+            $order = $this->orderService->createOrder($request);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $order
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function apply(ApplyVoucherRequest $request)
+    {
+        $code = $request->code;
+        $orderTotal = $request->order_total;
+
+        $result = $this->voucherService->applyVoucher($code, $orderTotal);
+
+        return response()->json($result);
     }
 }
